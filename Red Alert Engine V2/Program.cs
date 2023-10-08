@@ -135,7 +135,7 @@ namespace Red_Alert_Engine_V2
                 return "Error";
             }
         }
-
+        
         void Alert_Log(Alert alert)
         {
             string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\Alerts\" + System.DateTime.Now.ToString("yyyy-MM-dd");
