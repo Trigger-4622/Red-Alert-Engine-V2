@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -12,6 +13,8 @@ namespace Red_Alert_Engine_V2
 {
     internal class Program
     {
+        public bool main_server_down;
+        public string IDF_URL = @"https://www.oref.org.il/WarningMessages/alert/alerts.json";
         public struct Alert
         {
             public string desc;
@@ -49,32 +52,34 @@ namespace Red_Alert_Engine_V2
             Alert alert = JsonConvert.DeserializeObject<Alert>("{}");
             var old_alert = alert;
             string Alert_Downloaded_Old, Alert_Downloaded_New;
-            string Alert;
 
-            Alert = @"https://www.oref.org.il/WarningMessages/alert/alerts.json";
             Program program = new Program();
 
-            while (true)
-            {
-                Alert_Downloaded_Old = program.WebClient_(Alert);
-                Task.Delay(1000).Wait();
-                Alert_Downloaded_New = program.WebClient_(Alert);
+            Alert_Downloaded_Old = program.WebClient_(IDF_URL);
+            Task.Delay(1000).Wait();
+            Alert_Downloaded_New = program.WebClient_(IDF_URL);
 
-                if (Alert_Downloaded_New != "Error" && Alert_Downloaded_New != null && Alert_Downloaded_New != Alert_Downloaded_Old)
+            while (main_server_down == false)
+            {
+                Alert_Downloaded_New = program.WebClient_(IDF_URL);
+
+                if (Alert_Downloaded_New != "Error" && Alert_Downloaded_New != null && Alert_Downloaded_New != Alert_Downloaded_Old && Alert_Downloaded_New != "\r\n")
                 {
                     alert = JsonConvert.DeserializeObject<Alert>(Alert_Downloaded_New);
-                    if (Alert_Downloaded_Old != null)
+                    if (Alert_Downloaded_Old != null && Alert_Downloaded_Old != "\r\n")
                     {
                         old_alert = JsonConvert.DeserializeObject<Alert>(Alert_Downloaded_Old);
                         alert.data = alert.data.Except(old_alert.data).ToList();
                     }
+                    Alert_Log(alert);
                     Console.WriteLine("Alert!");  
                 }
                 else if(Alert_Downloaded_New == "Error")
                 {
                     Serch_Alert_Altrante_server();
-                    break;
+                    main_server_down = true;
                 }
+                Alert_Downloaded_Old = Alert_Downloaded_New;
             }
             return Task.CompletedTask;
         }
@@ -84,12 +89,11 @@ namespace Red_Alert_Engine_V2
             Console.WriteLine("Conected to Altrnate servers....");
             Alert_History alert = JsonConvert.DeserializeObject<Alert_History>("{}");
             string Alert_Downloaded_Old, Alert_Downloaded_New;
-            string Alert, Alert_;
-            Alert_ = @"https://www.oref.org.il/WarningMessages/alert/alerts.json";
+            string Alert;
             Alert = @"https://www.oref.org.il/WarningMessages/History/AlertsHistory.json";
             Program program = new Program();
 
-            while (WebClient_(Alert_) == "Error")
+            while (WebClient_(IDF_URL) == "Error")
             {
                 Alert_Downloaded_Old = program.WebClient_(Alert);
                 Task.Delay(1000).Wait();
@@ -108,6 +112,7 @@ namespace Red_Alert_Engine_V2
                     break;
                 }
             }
+            main_server_down = false;
             Serch_Alert();
             return Task.CompletedTask;
         }
@@ -125,9 +130,22 @@ namespace Red_Alert_Engine_V2
             {
                 return _clinet.DownloadString(link);
             }
-            catch(Exception e) 
+            catch(Exception) 
             {
                 return "Error";
+            }
+        }
+
+        void Alert_Log(Alert alert)
+        {
+            string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\Alerts\" + System.DateTime.Now.ToString("yyyy-MM-dd");
+
+            // Write the string array to a new file named "Date.txt".
+            using (StreamWriter outputFile = new StreamWriter(File.Create(docPath + System.DateTime.Now.ToString("HH-mm-ss") + ".txt")))
+            {
+                outputFile.WriteLine("Alert ----------------------->" + System.DateTime.Now.ToString());
+                foreach (string AlertData in alert.data)
+                    outputFile.WriteLine(AlertData);
             }
         }
     }
