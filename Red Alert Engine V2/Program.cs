@@ -141,7 +141,7 @@ namespace Red_Alert_Engine_V2
             string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\Alerts\" + System.DateTime.Now.ToString("yyyy-MM-dd");
 
             // Write the string array to a new file named "Date.txt".
-            using (StreamWriter outputFile = new StreamWriter(File.Create(docPath + System.DateTime.Now.ToString("HH-mm-ss") + ".txt")))
+            using (StreamWriter outputFile = new StreamWriter(File.Create(docPath + @"\" + System.DateTime.Now.ToString("HH-mm-ss") + ".txt")))
             {
                 outputFile.WriteLine("Alert ----------------------->" + System.DateTime.Now.ToString());
                 foreach (string AlertData in alert.data)
