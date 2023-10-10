@@ -135,17 +135,32 @@ namespace Red_Alert_Engine_V2
                 return "Error";
             }
         }
-        
+
         void Alert_Log(Alert alert)
         {
+            
             string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\Alerts\" + System.DateTime.Now.ToString("yyyy-MM-dd");
+            Create_Dir(docPath);
 
             // Write the string array to a new file named "Date.txt".
-            using (StreamWriter outputFile = new StreamWriter(File.Create(docPath + @"\" + System.DateTime.Now.ToString("HH-mm-ss") + ".txt")))
+            using (StreamWriter outputFile = File.CreateText(docPath + @"\" + System.DateTime.Now.ToString("HH-mm-ss") + ".txt"))
             {
                 outputFile.WriteLine("Alert ----------------------->" + System.DateTime.Now.ToString());
+                outputFile.WriteLine("Title: " + alert.title);
+                outputFile.WriteLine("Desc: " + alert.desc);
+                outputFile.WriteLine("Data: ");
                 foreach (string AlertData in alert.data)
                     outputFile.WriteLine(AlertData);
+                
+            }
+        }
+
+        //create dir
+        void Create_Dir(string docPath)
+        {
+            if (!Directory.Exists(docPath))
+            {
+                Directory.CreateDirectory(docPath);
             }
         }
     }
